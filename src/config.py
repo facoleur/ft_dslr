@@ -1,0 +1,3 @@
+VIZUALISATION_PATH = "vizualisation"
+MODEL_PATH = "model"
+RANDOM_STATE = 42
