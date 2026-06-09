@@ -3,3 +3,4 @@
 venv
 subject.md
 data/model.csv
+model/**
