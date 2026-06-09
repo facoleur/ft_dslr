@@ -2,8 +2,21 @@ import sys
 import joblib
 import pandas as pd
 import seaborn as sns
+import numpy as np
 from config import MODEL_PATH
-from preprocess import preprocess, split_num_cat_feat
+import sys
+import joblib
+from config import MODEL_PATH, PREPROCESSOR_PATH
+
+
+def preprocess(X: pd.DataFrame) -> np.ndarray:
+    cols_to_drop = ["Index", "First Name", "Last Name", "Birthday"]
+    X = X[X.columns.difference(cols_to_drop).tolist()]
+
+    preprocessor = joblib.load("preproc.pkl")
+    X_proc = preprocessor.transform(X)
+
+    return X_proc
 
 
 def predict(df: pd.DataFrame):
@@ -16,28 +29,24 @@ def main():
     path = sys.argv[1]
     df = pd.read_csv(path)
 
-    model = joblib.load(MODEL_PATH)
-    clf = model["model"]
-    scaler = model["scaler"]
+    model = joblib.load("model.pkl")
+    le = joblib.load("label_encoder.pkl")
 
-    X_test, _ = preprocess(df)
+    X_test = preprocess(df)
 
-    num, _ = split_num_cat_feat(X_test)
-    X_test[num] = scaler.transform(X_test[num])
+    y = model.predict(X_test)
+    y_decoded = le.classes_
 
-    target = "Hogwarts House"
+    y = [y_decoded[i] for i in y]
 
-    y = clf.predict(X_test)
-
-    df = X_test.copy()
-
+    df = pd.DataFrame()
     df["Hogwarts House"] = y
-    print(df)
+    df.index.name = "Index"
 
-    df.to_csv("prediction.csv")
+    df.to_csv("houses.csv", index=True)
 
-    ax = sns.countplot(x=target, data=df)
-    ax.figure.savefig("test.png")  # type: ignore
+    # ax = sns.countplot(x=target, data=df)
+    # ax.figure.savefig("test.png")  # type: ignore
 
 
 if __name__ == "__main__":

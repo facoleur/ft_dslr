@@ -1,29 +1,61 @@
 import sys
-from sklearn.linear_model import LogisticRegression
+import joblib
+import numpy as np
 import pandas as pd
+
+# from sklearn.linear_model import LogisticRegression
+from ft_logistic_regression import FtLogisticRegression as LogisticRegression
 from sklearn.preprocessing import StandardScaler
 import joblib
-from preprocess import preprocess, split_num_cat_feat
 from config import MODEL_PATH, RANDOM_STATE
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+from config import PREPROCESSOR_PATH
+from typing import Literal
+
+
+def preprocess(X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    target = "Hogwarts House"
+
+    cols_to_drop = ["Index", "First Name", "Last Name", "Birthday"]
+    X = X[X.columns.difference(cols_to_drop).tolist()]
+
+    y = X[target]
+    X = X.drop(columns=target)
+
+    categorical_features = ["Best Hand"]
+    num_features = X.columns.difference(categorical_features).tolist()
+
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+    joblib.dump(le, "label_encoder.pkl")
+
+    num_pipeline = Pipeline(
+        [("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler())]
+    )
+
+    cat_pipeline = Pipeline(
+        [("impute", SimpleImputer(strategy="most_frequent")), ("encode", OrdinalEncoder())]
+    )
+
+    preprocessor = ColumnTransformer(
+        [("num", num_pipeline, num_features), ("cat", cat_pipeline, categorical_features)],
+        remainder="passthrough",
+    )
+
+    X_proc = preprocessor.fit_transform(X)
+    joblib.dump(preprocessor, "preproc.pkl")
+
+    return X_proc, y_enc
 
 
 def train(df: pd.DataFrame):
+    X_train, y_train = preprocess(df)
 
-    X, y = preprocess(df)
-
-    # categorical_features = ["Best Hand"]
-    # num_features = X.columns.difference(categorical_features).tolist()
-    num, _ = split_num_cat_feat(X)
-
-    scaler = StandardScaler()
-    X[num] = scaler.fit_transform(X[num])
-
-    print(X)
-
-    clf = LogisticRegression(random_state=RANDOM_STATE).fit(X, y)
-    joblib.dump({"scaler": scaler, "model": clf}, MODEL_PATH)
-
-    print(f"model saved in {MODEL_PATH}")
+    clf = LogisticRegression().fit(X_train, y_train)
+    joblib.dump(clf, "model.pkl")
 
 
 def main():
@@ -33,6 +65,8 @@ def main():
     df = pd.read_csv(path)
 
     train(df)
+
+    print(f"model saved in {MODEL_PATH}")
 
 
 main()
