@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 
 
-def scatter(df: pd.DataFrame):
+def pairplot(df: pd.DataFrame):
     target = "Hogwarts House"
     features = df.select_dtypes(include="number").columns.difference(["Index"]).tolist()
 
@@ -16,7 +16,7 @@ def scatter(df: pd.DataFrame):
     #         sns.scatterplot(data=df, x=df[f], y=df[g], ax=ax, hue=target)
 
     plot = sns.pairplot(df, hue=target, vars=features)
-    plot.savefig("scatter.png")
+    plot.savefig("pairplot.png")
 
 
 def main():
@@ -25,8 +25,8 @@ def main():
     path = sys.argv[1]
     df = pd.read_csv(path)
 
-    scatter(df)
-
+    pairplot(df)
 
 if __name__ == "__main__":
     main()
+

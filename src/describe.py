@@ -6,13 +6,20 @@ import pandas as pd
 
 def mean(n: pd.Series) -> float:
     n = n.dropna()
-    return float(sum(n) / len(n))
+    try:
+        mean = float(sum(n) / len(n))
+        return mean
+    except ZeroDivisionError:
+        return 0
 
 
 def std(n: pd.Series, mean):
     n = n.dropna()
-    var = sum((x - mean) ** 2 for i, x in enumerate(n)) / len(n)
-    return math.sqrt(var)
+    try:
+        var = sum((x - mean) ** 2 for i, x in enumerate(n)) / len(n)
+        return math.sqrt(var)
+    except ZeroDivisionError:
+        return 0
 
 
 def quartile(data: pd.Series, q: float):
@@ -23,13 +30,19 @@ def quartile(data: pd.Series, q: float):
     lower = int(idx)
     upper = int(idx + 1)
     frac = idx - lower
-    if upper >= n:
-        return float(s[lower])
-    return float(s[lower] + frac * (s[upper] - s[lower]))
+    try:
+        if upper >= n:
+            return float(s[lower])
+        return float(s[lower] + frac * (s[upper] - s[lower]))
+    except IndexError:
+        return 0
 
 
 def describe(path: str):
-    df = pd.read_csv(path)
+    try:
+        df = pd.read_csv(path)
+    except FileNotFoundError:
+        sys.exit("File not found")
 
     descr = []
     col: str
@@ -37,7 +50,7 @@ def describe(path: str):
     indices = ["count", "mean", "std", "min", "q1", "q2", "q3", "max"]
     descr = {stat: [] for stat in indices}
 
-    numeric = df.select_dtypes(include="number").drop(columns="Index")
+    numeric = df.select_dtypes(include="number").drop(columns="Index", errors="ignore")
     for col in numeric:
         c = pd.Series(df[col])
         m = mean(c)

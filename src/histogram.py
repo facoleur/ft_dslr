@@ -6,6 +6,11 @@ import seaborn as sns
 
 
 def histogram(df: pd.DataFrame):
+    target = "Hogwarts House"
+
+    if not (target in df.columns and not df[target].dropna().empty):
+        sys.exit("no target")
+
     courses = [
         "Arithmancy",
         "Astronomy",
@@ -25,9 +30,7 @@ def histogram(df: pd.DataFrame):
     fig, axes = plt.subplots(5, 3, figsize=(16, 20))
 
     for ax, col in zip(axes.flat, courses):
-        sns.histplot(
-            data=df, x=col, ax=ax, linewidth=0, hue="Hogwarts House", alpha=0.5
-        )
+        sns.histplot(data=df, x=col, ax=ax, linewidth=0, hue=target, alpha=0.5)
         ax.set_title(col)
         ax.set_xlabel("")
         plt.tight_layout()
@@ -44,4 +47,5 @@ def main():
     histogram(df)
 
 
-main()
+if __name__ == "__main__":
+    main()
