@@ -1,8 +1,8 @@
-import pandas as pd
 import sys
-import math
-import seaborn as sns
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 
 def histogram(df: pd.DataFrame):
@@ -25,7 +25,9 @@ def histogram(df: pd.DataFrame):
     fig, axes = plt.subplots(5, 3, figsize=(16, 20))
 
     for ax, col in zip(axes.flat, courses):
-        sns.histplot(data=df, x=col, ax=ax, linewidth=0, hue="Hogwarts House", alpha=0.5)
+        sns.histplot(
+            data=df, x=col, ax=ax, linewidth=0, hue="Hogwarts House", alpha=0.5
+        )
         ax.set_title(col)
         ax.set_xlabel("")
         plt.tight_layout()

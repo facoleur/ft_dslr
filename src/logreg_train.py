@@ -1,29 +1,25 @@
 import sys
+
 import joblib
 import numpy as np
 import pandas as pd
-
-# from sklearn.linear_model import LogisticRegression
-from ft_logistic_regression import FtLogisticRegression as LogisticRegression
-from sklearn.preprocessing import StandardScaler
-import joblib
-from config import MODEL_PATH, RANDOM_STATE
-from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
-from config import PREPROCESSOR_PATH
-from typing import Literal
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
+
+from config import MODEL_PATH
+from ft_logistic_regression import FtLogisticRegression as LogisticRegression
 
 
-def preprocess(X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
-    target = "Hogwarts House"
-
+def preprocess(
+    X: pd.DataFrame, y: pd.Series
+) -> tuple[np.ndarray, np.ndarray, ColumnTransformer]:
+    """
+    Returns cleaned X, cleaned Y, and the preprocessor pipeline to transform() Test and Valid data.
+    """
     cols_to_drop = ["Index", "First Name", "Last Name", "Birthday"]
     X = X[X.columns.difference(cols_to_drop).tolist()]
-
-    y = X[target]
-    X = X.drop(columns=target)
 
     categorical_features = ["Best Hand"]
     num_features = X.columns.difference(categorical_features).tolist()
@@ -37,22 +33,33 @@ def preprocess(X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     )
 
     cat_pipeline = Pipeline(
-        [("impute", SimpleImputer(strategy="most_frequent")), ("encode", OrdinalEncoder())]
+        [
+            ("impute", SimpleImputer(strategy="most_frequent")),
+            ("encode", OrdinalEncoder()),
+        ]
     )
 
     preprocessor = ColumnTransformer(
-        [("num", num_pipeline, num_features), ("cat", cat_pipeline, categorical_features)],
+        [
+            ("num", num_pipeline, num_features),
+            ("cat", cat_pipeline, categorical_features),
+        ],
         remainder="passthrough",
     )
 
     X_proc = preprocessor.fit_transform(X)
     joblib.dump(preprocessor, "preproc.pkl")
 
-    return X_proc, y_enc
+    return np.asarray(X_proc), np.asarray(y_enc), preprocessor
 
 
 def train(df: pd.DataFrame):
-    X_train, y_train = preprocess(df)
+    target = "Hogwarts House"
+
+    y = df[target]
+    X = df.drop(columns=target)
+
+    X_train, y_train, _ = preprocess(X, y)
 
     clf = LogisticRegression().fit(X_train, y_train)
     joblib.dump(clf, "model.pkl")
@@ -69,4 +76,5 @@ def main():
     print(f"model saved in {MODEL_PATH}")
 
 
-main()
+if __name__ == "__main__":
+    main()

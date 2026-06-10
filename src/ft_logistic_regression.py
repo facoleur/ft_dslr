@@ -1,4 +1,3 @@
-from math import exp
 import numpy as np
 
 
@@ -34,6 +33,10 @@ class FtLogisticRegression:
 
             self.W_ = self.W_ - self.lr * dw
             self.b_ = self.b_ - self.lr * db
+
+        self.coef_ = self.W_
+        self.intercept_ = self.b_
+        self.classes_ = np.unique(y)
 
         return self
 

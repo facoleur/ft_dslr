@@ -1,12 +1,14 @@
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+from typing import Literal
+
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+
 from config import PREPROCESSOR_PATH
-from typing import Literal
 
 Subset = Literal["test", "train"]
 
@@ -29,11 +31,17 @@ def preprocess(X: pd.DataFrame, *, subset: Subset) -> tuple[np.ndarray, np.ndarr
     )
 
     cat_pipeline = Pipeline(
-        [("impute", SimpleImputer(strategy="most_frequent")), ("encode", OrdinalEncoder())]
+        [
+            ("impute", SimpleImputer(strategy="most_frequent")),
+            ("encode", OrdinalEncoder()),
+        ]
     )
 
     preprocessor = ColumnTransformer(
-        [("num", num_pipeline, num_features), ("cat", cat_pipeline, categorical_features)],
+        [
+            ("num", num_pipeline, num_features),
+            ("cat", cat_pipeline, categorical_features),
+        ],
         remainder="passthrough",
     )
 

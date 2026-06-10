@@ -1,6 +1,8 @@
-import pandas as pd
 import sys
+
+import pandas as pd
 import seaborn as sns
+
 from config import VIZUALISATION_PATH
 
 

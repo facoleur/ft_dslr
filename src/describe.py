@@ -1,7 +1,7 @@
-import pandas as pd
-import sys
 import math
-from pprint import pprint
+import sys
+
+import pandas as pd
 
 
 def mean(n: pd.Series) -> float:
